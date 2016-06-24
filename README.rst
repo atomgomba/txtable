@@ -92,11 +92,8 @@ Default usage:
     import csv
     from txtable import TextTable
 
-    data = []
     with open("cities.csv") as f:
-        csv_reader = csv.reader(f)
-        for row in csv_reader:
-            data.append(row)
+        data = list(csv.reader(f))
 
     # the TextTable constructor takes a sequence type as the first argument
     print(TextTable(data))
@@ -138,16 +135,4 @@ Command-line help
                             (ReStructuredText) (default: default)
       -t TYPE, --type TYPE  Input data type to read from stdin: json/csv (default:
                             json)
-    usage: txtable [-h] [-f FORMATTER] [-t TYPE] [files [files ...]]
 
-    positional arguments:
-      files                 Path to input files (json/csv) or read from stdin when
-                            empty (default: [])
-
-    optional arguments:
-      -h, --help            show this help message and exit
-      -f FORMATTER, --formatter FORMATTER
-                            Table format: default, headless, md (Markdown) or rst
-                            (ReStructuredText) (default: default)
-      -t TYPE, --type TYPE  Input data type to read from stdin: json/csv (default:
-                            json)
