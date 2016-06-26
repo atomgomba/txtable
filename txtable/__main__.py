@@ -23,8 +23,12 @@ def get_formatter(name: str) -> BaseFormatter or None:
 def create_json_table(s: str) -> list:
     data = json.loads(s)
     if type(data) is not list:
-        print("ERROR: JSON must contain a collection")
-        raise SystemExit(1)
+        if type(data) is dict:
+            data = [data]
+        else:
+            print(data)
+            print("ERROR: JSON must contain a collection or an object")
+            raise SystemExit(1)
     if 0 == len(data):
         return []
     header = list(data[0].keys())
@@ -38,10 +42,7 @@ def create_json_table(s: str) -> list:
 
 
 def create_csv_table(f) -> list:
-    csv_reader = csv.reader(f)
-    table = []
-    for row in csv_reader:
-        table.append(row)
+    table = list(csv.reader(f))
     f.close()
     return table
 

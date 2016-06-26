@@ -1,5 +1,6 @@
 import os
 from abc import abstractmethod
+from collections.abc import Sequence
 
 from ..options_merger import OptionsMerger
 
@@ -16,7 +17,7 @@ class BaseFormatter(metaclass=OptionsMerger):
     def __init__(self, **kwargs):
         self.options.update(kwargs)
 
-    def format(self, rows: list) -> str:
+    def format(self, rows: Sequence) -> str:
         table = []
         last_row = len(rows) - 1
         for row_index, columns in enumerate(rows):
@@ -40,14 +41,18 @@ class BaseFormatter(metaclass=OptionsMerger):
     def format_row(self, columns: list, row_index: int) -> str:
         pass
 
-    def format_cell(self, value, column_width: int, column_index: int, row_index: int) -> str:
+    # noinspection PyUnusedLocal
+    @staticmethod
+    def format_cell(value, column_width: int, column_index: int, row_index: int) -> str:
         if row_index == 0:
             return "{:<{w}s}".format(str(value), w=column_width)
         else:
             return "{:>{w}s}".format(str(value), w=column_width)
 
-    def format_footer(self, columns: list) -> str:
+    # noinspection PyUnusedLocal
+    @staticmethod
+    def format_footer(columns: list) -> str:
         return ""
 
-    def __getattr__(self, name):
+    def __getattr__(self, name: str):
         return self.options.get(name)

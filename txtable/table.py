@@ -5,30 +5,22 @@ from .formatters import BaseFormatter, DefaultFormatter
 
 class TextTable:
 
-    __rows = []
-
-    def __init__(self, rows: Sequence=None, formatter: BaseFormatter=None):
+    def __init__(self,
+                 rows: Sequence or None=None,
+                 formatter: BaseFormatter or None=None):
         """
         :param rows: Table data
         :param formatter: A formatter instance
         """
-        if isinstance(rows, Sequence):
-            self.rows = rows
+        self.__rows = rows or []
         self.formatter = formatter or DefaultFormatter()
+        self.__normalize()
 
     def get_max_column_number(self) -> int:
         """
         :return: the number of columns in the longest row
         """
-        width = 0
-        for row in self.rows:
-            try:
-                n = len(row)
-            except TypeError:
-                n = 1
-            if width < n:
-                width = n
-        return width
+        return max((len(row) if isinstance(row, Sequence) else 1 for row in self.rows))
 
     def get_column_widths(self) -> list:
         """
@@ -59,7 +51,7 @@ class TextTable:
         self.__rows = value
         self.__normalize()
 
-    def __normalize(self) -> list:
+    def __normalize(self):
         if not self.rows:
             self.__rows = []
             return
@@ -69,10 +61,7 @@ class TextTable:
             if not row:
                 normal.append([None] * max_width)
                 continue
-            if not isinstance(row, Sequence):
-                v = [row]
-            else:
-                v = row
+            v = [row] if not isinstance(row, Sequence) else row
             w = len(v)
             if w < max_width:
                 v = v + [None] * (max_width - w)
@@ -80,11 +69,15 @@ class TextTable:
         self.__rows = normal
 
     def __str__(self):
-        if not self.rows:
+        rows = self.rows
+        if not rows \
+                or not isinstance(rows, Sequence) \
+                or 0 == len(rows) \
+                or not isinstance(rows[0], Sequence) \
+                or 0 == len(rows[0]):
+            # data not tabular
             return ""
-        if not isinstance(self.rows[0], Sequence):
-            raise ValueError("Input data doesn't seem to be tabular")
-        self.formatter.width = len(self.rows[0])
-        self.formatter.height = len(self.rows)
+        self.formatter.width = len(rows[0])
+        self.formatter.height = len(rows)
         self.formatter.raw_column_widths = self.get_column_widths()
-        return self.formatter.format(self.rows)
+        return self.formatter.format(rows)
