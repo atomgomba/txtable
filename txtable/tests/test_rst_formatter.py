@@ -1,7 +1,7 @@
 from unittest import TestCase
 
-from txtable import TextTable
-from txtable.formatters import RstFormatter
+from ..formatters import RstFormatter
+from ..table import TextTable
 
 
 class TestRstFormatter(TestCase):

@@ -1,4 +1,5 @@
 from collections.abc import Sequence
+from typing import Optional
 
 from .formatters import BaseFormatter, DefaultFormatter
 
@@ -6,8 +7,8 @@ from .formatters import BaseFormatter, DefaultFormatter
 class TextTable:
 
     def __init__(self,
-                 rows: Sequence or None=None,
-                 formatter: BaseFormatter or None=None):
+                 rows: Optional[Sequence] = None,
+                 formatter: Optional[BaseFormatter] = None):
         """
         :param rows: Table data
         :param formatter: A formatter instance

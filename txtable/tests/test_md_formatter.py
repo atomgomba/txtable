@@ -1,7 +1,7 @@
 from unittest import TestCase
 
-from txtable import TextTable
-from txtable.formatters import MdFormatter
+from ..formatters import MdFormatter
+from ..table import TextTable
 
 
 class TestMdFormatter(TestCase):

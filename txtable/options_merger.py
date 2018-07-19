@@ -1,5 +1,4 @@
 class OptionsMerger(type):
-
     options = {}
 
     def __new__(mcs, name, bases, classdict):

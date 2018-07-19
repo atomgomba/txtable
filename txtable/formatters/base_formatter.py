@@ -6,7 +6,6 @@ from ..options_merger import OptionsMerger
 
 
 class BaseFormatter(metaclass=OptionsMerger):
-
     options = {
         "header_separator": True
     }

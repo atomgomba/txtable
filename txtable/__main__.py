@@ -1,23 +1,43 @@
-from sys import exit, stdin
-from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
-import json
 import csv
+import json
+from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser
+from enum import Enum
+from sys import exit, stdin
 
-from . import TextTable
-from .formatters import BaseFormatter, DefaultFormatter, HeadlessFormatter, MdFormatter, RstFormatter
+from .formatters import DefaultFormatter, HeadlessFormatter, MdFormatter, RstFormatter
+from .table import TextTable
 
 
-def get_formatter(name: str) -> BaseFormatter or None:
-    name = str(name).lower()
-    if name == "default":
-        return DefaultFormatter()
-    if name == "headless":
-        return HeadlessFormatter()
-    if name == "md":
-        return MdFormatter()
-    if name == "rst":
-        return RstFormatter()
-    return None
+class Formatter(Enum):
+    default = DefaultFormatter
+    headless = HeadlessFormatter
+    md = MdFormatter
+    rst = RstFormatter
+
+    @staticmethod
+    def enum(value: str) -> 'Formatter':
+        try:
+            return Formatter[value]
+        except KeyError:
+            raise ValueError()
+
+    def __str__(self):
+        return self.name
+
+
+class DataFormat(Enum):
+    csv = "csv"
+    json = "json"
+
+    @staticmethod
+    def enum(value: str) -> 'DataFormat':
+        try:
+            return DataFormat[value]
+        except KeyError:
+            raise ValueError()
+
+    def __str__(self):
+        return self.name
 
 
 def create_json_table(s: str) -> list:
@@ -42,46 +62,49 @@ def create_json_table(s: str) -> list:
 
 
 def create_csv_table(f) -> list:
-    table = list(csv.reader(f))
-    f.close()
-    return table
+    return list(csv.reader(f))
 
 
-def main(args):
-    formatter = get_formatter(args.formatter)
-    if not formatter:
-        print("ERROR: Invalid formatter: " + args.formatter)
+def format_stdin(args) -> int:
+    if args.type == "json":
+        data = stdin.read()
+        table = create_json_table(data)
+    elif args.type == "csv":
+        table = create_csv_table(stdin)
+    else:
+        print("ERROR: Unknown data format")
         return 1
-    if not args.files:
-        if args.type == "json":
-            data = stdin.read()
-            table = create_json_table(data)
-        elif args.type == "csv":
-            table = create_csv_table(stdin)
-        else:
-            print("ERROR: Unknown data format")
-            return 1
-        print(TextTable(table, formatter=formatter))
-        return 0
-    for path in args.files:
+    print(TextTable(table, formatter=args.formatter.value()))
+    return 0
+
+
+def format_files(args) -> int:
+    for path in args.input:
         with open(path) as f:
             if path.endswith(".json"):
                 table = create_json_table(f.read())
             elif path.endswith(".csv"):
                 table = create_csv_table(f)
             else:
-                print("ERROR: Unknown data format")
+                print("ERROR: Unknown file format")
                 return 1
-        print(path + ": ")
-        print(TextTable(table, formatter=formatter))
+        print("# %s\n" % path)
+        print(TextTable(table, formatter=args.formatter.value()))
         print("\n")
     return 0
 
 
+def main(args) -> int:
+    return format_files(args) if args.input else format_stdin(args)
+
+
 if __name__ == "__main__":
     parser = ArgumentParser(prog="txtable", formatter_class=ArgumentDefaultsHelpFormatter)
-    parser.add_argument("files", default=[], nargs="*", help="Path to input files (json/csv) or read from stdin when empty")
-    parser.add_argument("-f", "--formatter", default="default", help="Table format: default, headless, md (Markdown) or rst (ReStructuredText)")
-    parser.add_argument("-t", "--type", default="json", help="Input data type to read from stdin: json/csv")
+    parser.add_argument("input", default=[], nargs="*",
+                        help="File paths or stdin when empty")
+    parser.add_argument("-f", "--formatter", type=Formatter.enum, default=Formatter.default, choices=list(Formatter),
+                        help="Select table formatter")
+    parser.add_argument("-t", "--type", type=DataFormat.enum, default=DataFormat.json, choices=list(DataFormat),
+                        help="Specify input data format from stdin")
 
     exit(main(parser.parse_args()))

@@ -1,9 +1,9 @@
 import os
+
 from . import BaseFormatter
 
 
 class DefaultFormatter(BaseFormatter):
-
     options = {
         "header_separator": "=",
         "column_spacing": "  ",
@@ -16,4 +16,3 @@ class DefaultFormatter(BaseFormatter):
 
     def format_row(self, columns: list, row_index: int) -> str:
         return self.column_spacing.join(columns)
-
